@@ -30,58 +30,86 @@ endfunction
 let g:mru_tabepage_list = []
 let g:mru_tabepage_list_size = 20
 function! <SID>OnTabLeave()
-    let l:filename = expand("%:p")
-    " echom "OnTabLeave " . l:filename
-    if (len(l:filename))
-        let l:bufnumber = bufnr('%')
-        if (bufloaded(l:bufnumber) && buflisted(l:bufnumber))
-            call add(g:mru_tabepage_list, expand("%:p"))
-            if (len(g:mru_tabepage_list) > g:mru_tabepage_list_size)
-                call remove(g:mru_tabepage_list, 0)
+    try
+        let l:filename = expand("%:p")
+        " echom "OnTabLeave " . l:filename
+        if (len(l:filename))
+            let l:bufnumber = bufnr('%')
+            if (bufloaded(l:bufnumber) && buflisted(l:bufnumber))
+                call add(g:mru_tabepage_list, expand("%:p"))
+                if (len(g:mru_tabepage_list) > g:mru_tabepage_list_size)
+                    call remove(g:mru_tabepage_list, 0)
+                endif
             endif
         endif
-    endif
+    catch
+        return
+    endtry
 endfunction
 
+let s:goto_last_tab = 1
+
 function! <SID>GoToLastTab()
+    if !s:goto_last_tab
+        return
+    endif
     " echom "GoToLastTab " . join(g:mru_tabepage_list)
-    let l:found = 0
-    while (len(g:mru_tabepage_list) && !l:found)
-        let l:filename = remove(g:mru_tabepage_list, -1)
-        let l:bufnumber = bufnr(l:filename)
-        if (l:bufnumber < 0)
-            continue
-        endif
-        let l:tablist = range(1, tabpagenr("$"))
-        let l:tabnumber = -1
-        for tabnumber in l:tablist
-            let l:buflist = tabpagebuflist(tabnumber)
-            for bufid in l:buflist
-                if (bufloaded(bufid) && buflisted(bufid) && bufid == l:bufnumber)
-                    let l:tabnumber = tabnumber
-                    let l:found = 1
+    try
+        let l:found = 0
+        while (len(g:mru_tabepage_list) && !l:found)
+            let l:filename = remove(g:mru_tabepage_list, -1)
+            let l:bufnumber = bufnr(l:filename)
+            if (l:bufnumber < 0)
+                continue
+            endif
+            let l:tablist = range(1, tabpagenr("$"))
+            let l:tabnumber = -1
+            for tabnumber in l:tablist
+                let l:buflist = tabpagebuflist(tabnumber)
+                for bufid in l:buflist
+                    if (bufloaded(bufid) && buflisted(bufid) && bufid == l:bufnumber)
+                        let l:tabnumber = tabnumber
+                        let l:found = 1
+                        break
+                    endif
+                endfor
+                if (l:found)
                     break
                 endif
             endfor
             if (l:found)
-                break
+                " echom "Switching to tab " . l:tabnumber
+                execute "normal! " . l:tabnumber . "gt"
+                " goto split
+                let l:window_number = bufwinnr(l:bufnumber)
+                if (l:window_number >= 0)
+                    execute l:window_number . "wincmd w"
+                endif
+                return
             endif
-        endfor
-        if (l:found)
-            " echom "Switching to tab " . l:tabnumber
-            execute "normal! " . l:tabnumber . "gt"
-            " goto split
-            let l:window_number = bufwinnr(l:bufnumber)
-            if (l:window_number >= 0)
-                execute l:window_number . "wincmd w"
-            endif
-            return
-        endif
-    endwhile
+        endwhile
+    catch
+        return
+    endtry
+endfunction
+
+function! <SID>TabOnly()
+    let s:goto_last_tab = 0
+    execute "tabonly"
+    let s:goto_last_tab = 1
+    let l:cur_buflist = filter(tabpagebuflist(), 'buflisted(v:val)')
+    let l:cur_buf_dict = {}
+    for bid in l:cur_buflist
+        let l:cur_buf_dict[bid] = ''
+    endfor
+    let l:bd_buflist = filter(range(1, bufnr('$')), 'buflisted(v:val) && !has_key(l:cur_buf_dict, v:val)')
+    execute 'bd ' . join(l:bd_buflist)
 endfunction
 
 autocmd TabLeave * call <SID>OnTabLeave()
 autocmd TabClosed * call <SID>GoToLastTab()
 " Alt - t
 nnoremap <silent> † :call <SID>GoToLastTab()<CR>
+
+command! Tabonly call<SID>TabOnly()
 
