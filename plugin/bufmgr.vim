@@ -30,13 +30,16 @@ endfunction
 let g:mru_tabepage_list = []
 let g:mru_tabepage_list_size = 20
 function! <SID>OnTabLeave()
+    if !s:goto_last_tab
+        return
+    endif
     try
         let l:filename = expand("%:p")
-        " echom "OnTabLeave " . l:filename
         if (len(l:filename))
             let l:bufnumber = bufnr('%')
             if (bufloaded(l:bufnumber) && buflisted(l:bufnumber))
-                call add(g:mru_tabepage_list, expand("%:p"))
+                call add(g:mru_tabepage_list, l:filename)
+                " echom "OnTabLeave " . l:filename  " DEBUG
                 if (len(g:mru_tabepage_list) > g:mru_tabepage_list_size)
                     call remove(g:mru_tabepage_list, 0)
                 endif
@@ -112,4 +115,12 @@ autocmd TabClosed * call <SID>GoToLastTab()
 nnoremap <silent> † :call <SID>GoToLastTab()<CR>
 
 command! Tabonly call<SID>TabOnly()
+
+function! <SID>TabDrop(...)
+    call <SID>OnTabLeave()
+    let s:goto_last_tab = 0
+    execute "tab drop " . a:1
+    let s:goto_last_tab = 1
+endfunction
+command! -nargs=+ TabDrop call<SID>TabDrop(<f-args>)
 
