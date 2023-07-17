@@ -116,11 +116,11 @@ nnoremap <silent> † :call <SID>GoToLastTab()<CR>
 
 command! Tabonly call<SID>TabOnly()
 
-function! <SID>TabDrop(...)
+function! <SID>TabDrop(args)
     call <SID>OnTabLeave()
     let s:goto_last_tab = 0
-    execute "tab drop " . a:1
+    execute "tab drop " . a:args
     let s:goto_last_tab = 1
 endfunction
-command! -nargs=+ TabDrop call<SID>TabDrop(<f-args>)
+command! -nargs=* TabDrop call<SID>TabDrop(<q-args>)
 
