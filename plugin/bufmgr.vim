@@ -21,6 +21,7 @@ function! CloseBufOrWin()
     if (s:hasMultiWindow())
         execute 'q'
     else
+        " 防止vim整体退出
         execute 'bd'
     endif
 endfunction
