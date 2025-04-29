@@ -31,7 +31,7 @@ endfunction
 let g:mru_tabepage_list = []
 let g:mru_tabepage_list_size = 20
 function! <SID>OnTabLeave()
-    if !s:goto_last_tab
+    if !g:goto_last_tab
         return
     endif
     try
@@ -51,10 +51,10 @@ function! <SID>OnTabLeave()
     endtry
 endfunction
 
-let s:goto_last_tab = 1
+let g:goto_last_tab = 1
 
 function! <SID>GoToLastTab()
-    if !s:goto_last_tab
+    if !g:goto_last_tab
         return
     endif
     " echom "GoToLastTab " . join(g:mru_tabepage_list)
@@ -98,9 +98,9 @@ function! <SID>GoToLastTab()
 endfunction
 
 function! <SID>TabOnly()
-    let s:goto_last_tab = 0
+    let g:goto_last_tab = 0
     execute "tabonly"
-    let s:goto_last_tab = 1
+    let g:goto_last_tab = 1
     let l:cur_buflist = filter(tabpagebuflist(), 'buflisted(v:val)')
     let l:cur_buf_dict = {}
     for bid in l:cur_buflist
@@ -119,9 +119,9 @@ command! Tabonly call<SID>TabOnly()
 
 function! <SID>TabDrop(args)
     call <SID>OnTabLeave()
-    let s:goto_last_tab = 0
+    let g:goto_last_tab = 0
     execute "tab drop " . a:args
-    let s:goto_last_tab = 1
+    let g:goto_last_tab = 1
 endfunction
 command! -nargs=* TabDrop call<SID>TabDrop(<q-args>)
 
