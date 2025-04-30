@@ -119,7 +119,7 @@ autocmd TabClosed * call <SID>GoToLastTab()
 " Alt - t
 nnoremap <silent> † :call <SID>GoToLastTab()<CR>
 
-command! Tabonly call<SID>TabOnly()
+command! Cot call<SID>TabOnly()
 
 function! <SID>TabDrop(args)
     call <SID>OnTabLeave()
