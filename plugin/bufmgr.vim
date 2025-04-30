@@ -99,8 +99,12 @@ endfunction
 
 function! <SID>TabOnly()
     let g:goto_last_tab = 0
+    " First run official version tabonly, this will only close tabs but leaves
+    " buffers open
     execute "tabonly"
     let g:goto_last_tab = 1
+    " buflisted: appear in `ls` cmd
+    " bufloaded: appear in foreground, can be seen and edited
     let l:cur_buflist = filter(tabpagebuflist(), 'buflisted(v:val)')
     let l:cur_buf_dict = {}
     for bid in l:cur_buflist
@@ -125,3 +129,56 @@ function! <SID>TabDrop(args)
 endfunction
 command! -nargs=* TabDrop call<SID>TabDrop(<q-args>)
 
+function! <SID>TabCloseToRight()
+    let l:cur_tab = tabpagenr()
+    if (l:cur_tab == tabpagenr('$'))
+        return
+    endif
+
+    let g:goto_last_tab = 0
+
+    let l:close_buflist = []
+    for tabnumber in range(l:cur_tab + 1, tabpagenr('$'))
+        " This will not include tagbar
+        " let l:buflist = filter(tabpagebuflist(tabnumber), 'buflisted(v:val) && bufloaded(v:val)')
+        " This include all (including tagbar)
+        let l:buflist = tabpagebuflist(tabnumber)
+        let l:close_buflist += l:buflist
+    endfor
+    if (len(l:close_buflist))
+        execute 'bd ' . join(l:close_buflist)
+    endif
+
+    let g:goto_last_tab = 1
+endfunction
+
+" command! Crt call<SID>TabCloseToRight()
+
+function! <SID>TabCloseRight(bang)
+    let g:goto_last_tab = 0
+    let cur=tabpagenr()
+    while cur < tabpagenr('$')
+        exe 'tabclose' . a:bang . ' ' . (cur + 1)
+    endwhile
+    " get all loaded (shown) buffers
+    let l:hidden_bufs = filter(range(1, bufnr('$')), 'buflisted(v:val) && !bufloaded(v:val)')
+    if (len(l:hidden_bufs))
+        execute 'bd ' . join(l:hidden_bufs)
+    endif
+    let g:goto_last_tab = 1
+endfunction
+
+function! <SID>TabCloseLeft(bang)
+    let g:goto_last_tab = 0
+    while tabpagenr() > 1
+        exe 'tabclose' . a:bang . ' 1'
+    endwhile
+    let l:hidden_bufs = filter(range(1, bufnr('$')), 'buflisted(v:val) && !bufloaded(v:val)')
+    if (len(l:hidden_bufs))
+        execute 'bd ' . join(l:hidden_bufs)
+    endif
+    let g:goto_last_tab = 1
+endfunction
+
+command! -bang Crt call <SID>TabCloseRight('<bang>')
+command! -bang Clt call <SID>TabCloseLeft('<bang>')
