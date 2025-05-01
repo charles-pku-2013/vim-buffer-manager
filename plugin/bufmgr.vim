@@ -124,7 +124,7 @@ command! Cot call<SID>TabOnly()
 function! <SID>TabDrop(args)
     call <SID>OnTabLeave()
     let g:goto_last_tab = 0
-    execute "tab drop " . a:args
+    execute "silent tab drop " . a:args
     let g:goto_last_tab = 1
 endfunction
 command! -nargs=* TabDrop call<SID>TabDrop(<q-args>)
