@@ -127,7 +127,9 @@ function! <SID>TabDrop(args)
     execute "silent tab drop " . a:args
     let g:goto_last_tab = 1
 endfunction
-command! -nargs=* Td call<SID>TabDrop(<q-args>)
+command! -nargs=* TabDrop call<SID>TabDrop(<q-args>)
+" command alias for auto completion
+cnoreabbrev Td TabDrop
 
 function! <SID>TabCloseToRight()
     let l:cur_tab = tabpagenr()
