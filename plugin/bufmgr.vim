@@ -162,7 +162,7 @@ function! <SID>TabCloseRight(bang)
     while cur < tabpagenr('$')
         exe 'tabclose' . a:bang . ' ' . (cur + 1)
     endwhile
-    " get all loaded (shown) buffers
+    " close all not loaded (shown) buffers
     let l:hidden_bufs = filter(range(1, bufnr('$')), 'buflisted(v:val) && !bufloaded(v:val)')
     if (len(l:hidden_bufs))
         execute 'bd ' . join(l:hidden_bufs)
